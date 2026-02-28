@@ -8,6 +8,7 @@ struct LoginView: View {
     let onCreateAccount: () -> Void
 
     var body: some View {
+        let _ = print("Lifecycle: LoginView onCreate")
         ZStack {
             QPTheme.bg.ignoresSafeArea()
 
@@ -46,6 +47,14 @@ struct LoginView: View {
             .padding(.horizontal, 20)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            print("Lifecycle: LoginView onStart")
+            print("Lifecycle: LoginView onResume")
+        }
+        .onDisappear {
+            print("Lifecycle: LoginView onPause")
+            print("Lifecycle: LoginView onStop")
+        }
     }
 }
 

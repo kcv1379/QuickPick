@@ -48,6 +48,7 @@ struct MovieFeedView: View {
     ]
 
     var body: some View {
+        let _ = print("Lifecycle: MovieFeedView onCreate")
         ZStack {
             QPTheme.bg.ignoresSafeArea()
 
@@ -87,6 +88,14 @@ struct MovieFeedView: View {
         .sheet(isPresented: $showFilterSheet) {
             filterSheet
                 .presentationDetents([.medium])
+        }
+        .onAppear {
+            print("Lifecycle: MovieFeedView onStart")
+            print("Lifecycle: MovieFeedView onResume")
+        }
+        .onDisappear {
+            print("Lifecycle: MovieFeedView onPause")
+            print("Lifecycle: MovieFeedView onStop")
         }
     }
 

@@ -15,6 +15,7 @@ struct CreateAccountView: View {
     let onBack: () -> Void
 
     var body: some View {
+        let _ = print("Lifecycle: CreateAccountView onCreate")
         ZStack {
             QPTheme.bg.ignoresSafeArea()
 
@@ -76,6 +77,14 @@ struct CreateAccountView: View {
             .padding(.horizontal, 20)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            print("Lifecycle: CreateAccountView onStart")
+            print("Lifecycle: CreateAccountView onResume")
+        }
+        .onDisappear {
+            print("Lifecycle: CreateAccountView onPause")
+            print("Lifecycle: CreateAccountView onStop")
+        }
     }
 }
 
