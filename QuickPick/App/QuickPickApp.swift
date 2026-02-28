@@ -7,34 +7,33 @@ struct QuickPickApp: App {
     var body: some Scene {
         WindowGroup {
             if screen == "login" {
-            //temp root
-            LoginView(
-                onLogin: { username, password in
-                    print("Login tapped: \(username), \(password)")
-                    // switch to feed
-                    screen = "feed"
-                },
-                onCreateAccount: {
-                    print("Create account tapped")
-                    screen = "create"
-                }
-            )
+                //temp root
+                LoginView(
+                    onLogin: { username, password in
+                        print("Login tapped: \(username), \(password)")
+                        // switch to feed
+                        screen = "feed"
+                    },
+                    onCreateAccount: {
+                        print("Create account tapped")
+                        screen = "create"
+                    }
+                )
             } else if screen == "create" {
                 CreateAccountView(
                     onCreateAccount: { username, password, region in
                         print("Account created: \(username), \(region)")
-                        screen = "feed"
-                },
-                onBack: {
-                    screen = "login"
-                }
+                    },
+                    onBack: {
+                        print("Back button tapped")
+                        screen = "login"
+                    }
                 )
-            }else { MovieFeedView(
-                        onOpenSettings: {},
-                        onOpenDetails: { _ in }
+            } else { MovieFeedView(
+                    onOpenSettings: {},
+                    onOpenDetails: { _ in }
                 )
             }
-            .accentColor(.white)
         }
         .onChange(of: scenePhase) { _, newValue in
             switch newValue {
