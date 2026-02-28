@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct QuickPickApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     var body: some Scene {
         WindowGroup {
 
@@ -17,6 +18,18 @@ struct QuickPickApp: App {
                 }
             )
             .accentColor(.white)
+        }
+        .onChange(of: scenePhase) { _, newValue in
+            switch newValue {
+            case .active:
+                print("Lifecycle: App onResume")
+            case .inactive:
+                print("Lifecycle: App onPause")
+            case .background:
+                print("Lifecycle: App onStop")
+            @unknown default:
+                break
+            }
         }
     }
 }
