@@ -3,20 +3,37 @@ import SwiftUI
 @main
 struct QuickPickApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @State private var screen = "login"
     var body: some Scene {
         WindowGroup {
-
+            if screen == "login" {
             //temp root
             LoginView(
                 onLogin: { username, password in
-                    //hussan: navigate to MovieFeedView
                     print("Login tapped: \(username), \(password)")
+                    // switch to feed
+                    screen = "feed"
                 },
                 onCreateAccount: {
-                    //hussan: navigate to CreateAccountView
                     print("Create account tapped")
+                    screen = "create"
                 }
             )
+            } else if screen == "create" {
+                CreateAccountView(
+                    onCreateAccount: { username, password, region in
+                        print("Account created: \(username), \(region)")
+                        screen = "feed"
+                },
+                onBack: {
+                    screen = "login"
+                }
+                )
+            }else { MovieFeedView(
+                        onOpenSettings: {},
+                        onOpenDetails: { _ in }
+                )
+            }
             .accentColor(.white)
         }
         .onChange(of: scenePhase) { _, newValue in
