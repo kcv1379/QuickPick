@@ -13,25 +13,13 @@
 
 /* Begin PBXFileReference section */
 		6325C22F2F4D69DF001FFDFF /* QuickPick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickPick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE5CBC142F64E35A0089BBB3 /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
+		DE5CBC152F64E36D0089BBB3 /* AccountRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		63C6BE672F65053000E5B6CE /* Exceptions for "QuickPick" folder in "QuickPick" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Model/Account.swift,
-				Repositories/AccountRepository.swift,
-			);
-			target = 6325C22E2F4D69DF001FFDFF /* QuickPick */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6325C2312F4D69DF001FFDFF /* QuickPick */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				63C6BE672F65053000E5B6CE /* Exceptions for "QuickPick" folder in "QuickPick" target */,
-			);
 			path = QuickPick;
 			sourceTree = "<group>";
 		};
@@ -53,7 +41,9 @@
 		6325C2262F4D69DF001FFDFF = {
 			isa = PBXGroup;
 			children = (
+				DE5CBC132F64E3400089BBB3 /* Model */,
 				6325C2312F4D69DF001FFDFF /* QuickPick */,
+				DEC2EB8D2F64C47E004ECBFC /* Frameworks */,
 				6325C2302F4D69DF001FFDFF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +54,22 @@
 				6325C22F2F4D69DF001FFDFF /* QuickPick.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DE5CBC132F64E3400089BBB3 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				DE5CBC152F64E36D0089BBB3 /* AccountRepository.swift */,
+				DE5CBC142F64E35A0089BBB3 /* Account.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		DEC2EB8D2F64C47E004ECBFC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -281,7 +287,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66XHFTA6JM;
+				DEVELOPMENT_TEAM = XFNXD95L48;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -316,7 +322,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66XHFTA6JM;
+				DEVELOPMENT_TEAM = XFNXD95L48;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
