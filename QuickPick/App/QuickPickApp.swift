@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 @main
 struct QuickPickApp: App {
@@ -24,8 +25,19 @@ struct QuickPickApp: App {
             } else if screen == "create" {
                 CreateAccountView(
                     onCreateAccount: { username, password, region in
-                        print("Account created: \(username), \(region)")
-                        screen = "feed"
+                        let email = username + "@quickpick.com"
+                        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+                            if let error = error {
+                                print("Auth error: \(error.localizedDescription)")
+                                return
+                            }
+                            if let uid = result?.user.uid {
+                                let repo = AccountRepository()
+                                repo.createAccount(vid: uid, username: username, region: region)
+                                print("Account created: \(username), \(region)")
+                            }
+                            screen = "feed"
+                        }
                     },
                     onBack: {
                         print("Back button tapped")
