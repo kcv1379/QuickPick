@@ -20,7 +20,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Model/Account.swift,
-				Model/AccountRepository.swift,
+				Repositories/AccountRepository.swift,
 			);
 			target = 6325C22E2F4D69DF001FFDFF /* QuickPick */;
 		};
