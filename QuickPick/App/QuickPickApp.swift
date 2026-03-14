@@ -4,14 +4,15 @@ import SwiftUI
 struct QuickPickApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var screen = "login"
+    @State private var selectedTitle = "Jaws"
+    @State private var selectedYear = "1975"
+
     var body: some Scene {
         WindowGroup {
             if screen == "login" {
-                //temp root
                 LoginView(
                     onLogin: { username, password in
                         print("Login tapped: \(username), \(password)")
-                        // switch to feed
                         screen = "feed"
                     },
                     onCreateAccount: {
@@ -19,19 +20,76 @@ struct QuickPickApp: App {
                         screen = "create"
                     }
                 )
+
             } else if screen == "create" {
                 CreateAccountView(
                     onCreateAccount: { username, password, region in
                         print("Account created: \(username), \(region)")
+                        screen = "feed"
                     },
                     onBack: {
                         print("Back button tapped")
                         screen = "login"
                     }
                 )
-            } else { MovieFeedView(
-                    onOpenSettings: {},
-                    onOpenDetails: { _ in }
+
+            } else if screen == "settings" {
+                SettingsView(
+                    region: "US",
+                    shakeEnabled: true,
+                    onBack: {
+                        screen = "feed"
+                    },
+                    onSave: { region, shakeEnabled in
+                        print("Saved settings: \(region), shakeEnabled=\(shakeEnabled)")
+                    },
+                    onEditNotInterested: {
+                        print("Edit not interested list tapped")
+                    },
+                    onLogout: {
+                        print("Logout tapped")
+                        screen = "login"
+                    }
+                )
+
+            } else if screen == "selected" {
+                MovieSelectedView(
+                    title: selectedTitle,
+                    year: selectedYear,
+                    onClose: {
+                        screen = "feed"
+                    },
+                    onDetails: {
+                        screen = "details"
+                    },
+                    onMarkNotInterested: {
+                        print("Marked not interested: \(selectedTitle)")
+                        screen = "feed"
+                    }
+                )
+
+            } else if screen == "details" {
+                MovieDetailsView(
+                    title: selectedTitle,
+                    rating: "8.0",
+                    runtime: "124 min",
+                    genres: "Thriller, Adventure",
+                    posterName: nil,
+                    onBack: {
+                        screen = "selected"
+                    }
+                )
+
+            } else {
+                MovieFeedView(
+                    onOpenSettings: {
+                        screen = "settings"
+                    },
+                    onOpenDetails: { movieTitle in
+                        selectedTitle = movieTitle
+                        selectedYear = "1975"
+                        screen = "selected"
+                    }
                 )
             }
         }
