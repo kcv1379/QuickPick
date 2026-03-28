@@ -1,45 +1,39 @@
 import SwiftUI
 
-//mock domain object for now
-struct QPMovie: Identifiable, Hashable {
-    var id: String { "\(title)-\(year)" }
+struct QPMovie: Identifiable, Hashable, Decodable {
+    let id: Int
     let title: String
-    let year: String
+    let release_date: String?
+    let poster_path: String?
+
+    var year: String {
+        guard let release_date, release_date.count >= 4 else { return "----" }
+        return String(release_date.prefix(4))
+    }
+
+    var posterURL: URL? {
+        guard let poster_path else { return nil }
+        return URL(string: "https://image.tmdb.org/t/p/w500\(poster_path)")
+    }
 }
 
 struct MovieFeedView: View {
-    //temp states to be changed later
-    @State private var timeLimit: String = ""
-    @State private var discoveryMode: String = "Popular"
+    @Binding var timeLimit: String
+    @Binding var discoveryMode: String
+    @Binding var page: Int
+
     @State private var showFilterSheet = false
-    @State private var page: Int = 1
+    @State private var movies: [QPMovie] = []
+    @State private var isLoading = false
+    @State private var errorMessage = ""
+    @State private var totalPages = 1
 
-    let discoveryModes = ["Popular", "Top Rated"]
-
-    //temp mock data
-    private let movies: [QPMovie] = [
-        .init(title:"Jaws", year:"1975"),
-        .init(title:"Before Sunrise", year:"1995"),
-        .init(title:"La La Land", year:"2016"),
-        .init(title:"Parasite", year:"2019"),
-        .init(title:"Interstellar", year:"2014"),
-        .init(title:"The Florida Project", year:"2017"),
-        .init(title:"Past Lives", year:"2023"),
-        .init(title:"Her", year:"2013"),
-        .init(title:"Aftersun", year:"2022"),
-        .init(title:"Lady Bird", year:"2017"),
-        .init(title:"The Social Network", year:"2010"),
-        .init(title:"Whiplash", year:"2014"),
-        .init(title:"Moonlight", year:"2016"),
-        .init(title:"Arrival", year:"2016"),
-        .init(title:"Drive", year:"2011"),
-        .init(title:"Lost in Translation", year:"2003")
-    ]
-
-    //navigation to settings and datails screen once added
+    let region: String
     let onOpenSettings: () -> Void
-    let onOpenDetails: (_ movieTitle: String) -> Void
+    let onOpenDetails: (_ movie: QPMovie) -> Void
     let notInterestedMovies: [QPMovie]
+
+    private let discoveryModes = ["Popular", "Top Rated"]
 
     private let columns = [
         GridItem(.flexible()),
@@ -47,15 +41,8 @@ struct MovieFeedView: View {
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-    
-    private var filteredMovies: [QPMovie] {
-        movies.filter {
-            movie in !notInterestedMovies.contains(where: { $0.id == movie.id})
-        }
-    }
 
     var body: some View {
-        let _ = print("Lifecycle: MovieFeedView onCreate")
         ZStack {
             QPTheme.bg.ignoresSafeArea()
 
@@ -64,30 +51,69 @@ struct MovieFeedView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        //change to region later
-                        Text("\(discoveryMode) • US")
-                            .font(.caption)
+                        Text("\(discoveryMode) • \(region)")
+                            .font(.system(size: 17, weight: .medium))
+                            .opacity(0.9)
                             .foregroundStyle(QPTheme.subtle)
                             .padding(.horizontal, 16)
                             .padding(.top, 8)
 
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(filteredMovies) { movie in
-                                Button {
-                                    // update later
-                                    onOpenDetails("\(movie.title) (\(movie.year))")
-                                } label: {
-                                    // temp text, replace with posters in future
-                                    PosterCard(title: movie.title, year: movie.year)
+                        if isLoading {
+                            ProgressView()
+                                .tint(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 40)
+
+                        } else if !errorMessage.isEmpty {
+                            VStack(spacing: 12) {
+                                Text("Failed to load movies")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(.white)
+
+                                Text(errorMessage)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(QPTheme.subtle)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 20)
+
+                                Button("Try Again") {
+                                    Task {
+                                        await loadMovies()
+                                    }
                                 }
-                                .buttonStyle(.plain)
+                                .buttonStyle(QPPrimaryButtonStyle())
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 40)
+
+                        } else if movies.isEmpty {
+                            Text("No movies to show")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 40)
+
+                        } else {
+                            LazyVGrid(columns: columns, spacing: 10) {
+                                ForEach(Array(movies.prefix(16))) { movie in
+                                    Button {
+                                        onOpenDetails(movie)
+                                    } label: {
+                                        PosterCard(
+                                            movie: movie,
+                                            isNotInterested: notInterestedMovies.contains(where: { $0.id == movie.id })
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.top, 6)
+                            .padding(.bottom, 24)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 6)
-                        .padding(.bottom, 24)
                     }
                 }
+
                 bottomBar
             }
         }
@@ -95,6 +121,20 @@ struct MovieFeedView: View {
         .sheet(isPresented: $showFilterSheet) {
             filterSheet
                 .presentationDetents([.medium])
+        }
+        .task {
+            await loadMovies()
+        }
+        .onChange(of: page) { _, _ in
+            Task {
+                await loadMovies()
+            }
+        }
+        .onChange(of: discoveryMode) { _, _ in
+            page = 1
+            Task {
+                await loadMovies()
+            }
         }
         .onAppear {
             print("Lifecycle: MovieFeedView onStart")
@@ -114,7 +154,6 @@ struct MovieFeedView: View {
 
             Spacer()
 
-            //filter button
             Button {
                 showFilterSheet = true
             } label: {
@@ -129,8 +168,6 @@ struct MovieFeedView: View {
 
     private var bottomBar: some View {
         HStack {
-
-            //settings button
             Button {
                 onOpenSettings()
             } label: {
@@ -144,13 +181,14 @@ struct MovieFeedView: View {
 
             Spacer()
 
-            //prev and next button with paging
             HStack(spacing: 16) {
-
                 Button("Prev") {
-                    if page > 1 { page -= 1 }
+                    if page > 1 {
+                        page -= 1
+                    }
                     print("Prev page: \(page)")
                 }
+                .disabled(page == 1)
 
                 Text("Page \(page)")
                     .font(.system(size: 14, weight: .medium))
@@ -158,10 +196,12 @@ struct MovieFeedView: View {
                     .frame(minWidth: 70)
 
                 Button("Next") {
-                    // change later
-                    page += 1
+                    if page < totalPages {
+                        page += 1
+                    }
                     print("Next page: \(page)")
                 }
+                .disabled(page >= totalPages)
             }
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(.white.opacity(0.85))
@@ -171,7 +211,6 @@ struct MovieFeedView: View {
         .background(QPTheme.bg.opacity(0.98))
     }
 
-    //add additional filters in future
     private var filterSheet: some View {
         ZStack {
             QPTheme.bg.ignoresSafeArea()
@@ -210,7 +249,11 @@ struct MovieFeedView: View {
 
                 Button("Apply") {
                     print("Apply filters: timeLimit=\(timeLimit), mode=\(discoveryMode)")
+                    page = 1
                     showFilterSheet = false
+                    Task {
+                        await loadMovies()
+                    }
                 }
                 .buttonStyle(QPPrimaryButtonStyle())
                 .padding(.top, 6)
@@ -221,38 +264,97 @@ struct MovieFeedView: View {
         }
         .preferredColorScheme(.dark)
     }
+
+    private func loadMovies() async {
+        isLoading = true
+        errorMessage = ""
+
+        do {
+            let response = try await TMDBService.shared.fetchMovies(
+                mode: discoveryMode,
+                page: page,
+                region: region,
+                timeLimit: timeLimit
+            )
+            movies = response.results
+            totalPages = response.total_pages
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
 }
 
 private struct PosterCard: View {
-
-    let title: String
-    let year: String
+    let movie: QPMovie
+    let isNotInterested: Bool
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-
+        ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .fill(QPTheme.card)
-                .frame(height: 130)
+                .aspectRatio(2/3, contentMode: .fit)
+
+            if let posterURL = movie.posterURL {
+                AsyncImage(url: posterURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(QPTheme.card)
+                                .aspectRatio(2/3, contentMode: .fit)
+
+                            ProgressView()
+                                .tint(.white)
+                        }
+
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .aspectRatio(2/3, contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .saturation(isNotInterested ? 0 : 1)
+                            .opacity(isNotInterested ? 0.35 : 1)
+
+                    case .failure(_):
+                        fallbackCard
+
+                    @unknown default:
+                        fallbackCard
+                    }
+                }
+            } else {
+                fallbackCard
+            }
+
+            if isNotInterested {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.black.opacity(0.25))
+                    .aspectRatio(2/3, contentMode: .fit)
+            }
+        }
+    }
+
+    private var fallbackCard: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(QPTheme.card)
+                .aspectRatio(2/3, contentMode: .fit)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(movie.title)
                     .font(.system(size: 12, weight: .semibold))
-                    .lineLimit(2)
+                    .foregroundStyle(.white)
+                    .lineLimit(3)
 
-                Text(year)
+                Text(movie.year)
                     .font(.system(size: 11))
                     .foregroundStyle(QPTheme.subtle)
             }
             .padding(8)
         }
+        .opacity(isNotInterested ? 0.5 : 1)
     }
-}
-
-#Preview {
-    MovieFeedView(
-        onOpenSettings: { },
-        onOpenDetails: { _ in },
-        notInterestedMovies: []
-    )
 }

@@ -57,10 +57,3 @@ struct LoginView: View {
         }
     }
 }
-
-#Preview {
-    LoginView(
-        onLogin: { _, _ in },
-        onCreateAccount: { }
-    )
-}

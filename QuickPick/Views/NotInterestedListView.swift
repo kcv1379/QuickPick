@@ -39,7 +39,7 @@ struct NotInterestedListView: View {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(notInterestedMovies) { movie in
                                 ZStack(alignment: .topTrailing) {
-                                    NotInterestedPosterCard(title: movie.title, year: movie.year)
+                                    NotInterestedPosterCard(movie: movie)
 
                                     Button {
                                         removeMovie(movie)
@@ -106,46 +106,65 @@ struct NotInterestedListView: View {
 }
 
 private struct NotInterestedPosterCard: View {
-    let title: String
-    let year: String
+    let movie: QPMovie
 
     var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(QPTheme.card)
+                .frame(height: 170)
+
+            if let posterURL = movie.posterURL {
+                AsyncImage(url: posterURL) { phase in
+                    switch phase {
+                    case .empty:
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(QPTheme.card)
+                                .frame(height: 170)
+
+                            ProgressView()
+                                .tint(.white)
+                        }
+
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 170)
+                            .frame(maxWidth: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    case .failure(_):
+                        fallbackCard
+
+                    @unknown default:
+                        fallbackCard
+                    }
+                }
+            } else {
+                fallbackCard
+            }
+        }
+    }
+
+    private var fallbackCard: some View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 12)
                 .fill(QPTheme.card)
-                .frame(height: 130)
+                .frame(height: 170)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(movie.title)
                     .font(.system(size: 12, weight: .semibold))
-                    .lineLimit(2)
+                    .foregroundStyle(.white)
+                    .lineLimit(3)
 
-                Text(year)
+                Text(movie.year)
                     .font(.system(size: 11))
                     .foregroundStyle(QPTheme.subtle)
             }
             .padding(8)
         }
-    }
-}
-
-#Preview {
-    NotInterestedListPreviewWrapper()
-}
-
-private struct NotInterestedListPreviewWrapper: View {
-    @State private var sampleMovies: [QPMovie] = [
-        .init(title: "Jaws", year: "1975"),
-        .init(title: "La La Land", year: "2016"),
-        .init(title: "Her", year: "2013"),
-        .init(title: "Moonlight", year: "2016"),
-        .init(title: "Arrival", year: "2016")
-    ]
-
-    var body: some View {
-        NotInterestedListView(
-            notInterestedMovies: $sampleMovies,
-            onBack: { }
-        )
     }
 }

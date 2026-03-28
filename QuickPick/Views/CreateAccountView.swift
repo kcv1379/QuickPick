@@ -87,10 +87,3 @@ struct CreateAccountView: View {
         }
     }
 }
-
-#Preview {
-    CreateAccountView(
-        onCreateAccount: { _, _, _ in },
-        onBack: { }
-    )
-}

@@ -6,8 +6,7 @@ import FirebaseAuth
 struct QuickPickApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var screen = "login"
-    @State private var selectedTitle = "Jaws"
-    @State private var selectedYear = "1975"
+    @State private var selectedMovie: QPMovie? = nil
 
     @State private var region = "US"
     @State private var shakeEnabled = true
@@ -15,11 +14,12 @@ struct QuickPickApp: App {
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
+    
+    @State private var feedTimeLimit = ""
+    @State private var feedDiscoveryMode = "Popular"
+    @State private var feedPage = 1
 
-    @State private var notInterestedMovies: [QPMovie] = [
-        .init(title: "Jaws", year: "1975"),
-        .init(title: "Her", year: "2013")
-    ]
+    @State private var notInterestedMovies: [QPMovie] = []
 
     init() {
         FirebaseApp.configure()
@@ -133,10 +133,11 @@ struct QuickPickApp: App {
                         }
                     )
 
-                } else if screen == "selected" {
+                } else if screen == "selected", let movie = selectedMovie {
                     MovieSelectedView(
-                        title: selectedTitle,
-                        year: selectedYear,
+                        title: movie.title,
+                        year: movie.year,
+                        posterURL: movie.posterURL,
                         onClose: {
                             screen = "feed"
                         },
@@ -144,46 +145,34 @@ struct QuickPickApp: App {
                             screen = "details"
                         },
                         onMarkNotInterested: {
-                            let movie = QPMovie(title: selectedTitle, year: selectedYear)
-
                             if !notInterestedMovies.contains(movie) {
                                 notInterestedMovies.append(movie)
                             }
 
-                            print("Marked not interested: \(selectedTitle)")
+                            print("Marked not interested: \(movie.title)")
                             screen = "feed"
                         }
                     )
 
-                } else if screen == "details" {
+                } else if screen == "details", let movie = selectedMovie {
                     MovieDetailsView(
-                        title: selectedTitle,
-                        rating: "8.0",
-                        runtime: "124 min",
-                        genres: "Thriller, Adventure",
-                        posterName: nil,
+                        movieId: movie.id,
                         onBack: {
                             screen = "selected"
                         }
                     )
-
+                    
                 } else {
                     MovieFeedView(
+                        timeLimit: $feedTimeLimit,
+                        discoveryMode: $feedDiscoveryMode,
+                        page: $feedPage,
+                        region: region,
                         onOpenSettings: {
                             screen = "settings"
                         },
-                        onOpenDetails: { movieTitle in
-                            if let openParen = movieTitle.lastIndex(of: "("),
-                               let closeParen = movieTitle.lastIndex(of: ")") {
-                                let titlePart = movieTitle[..<openParen].trimmingCharacters(in: .whitespaces)
-                                let yearPart = movieTitle[movieTitle.index(after: openParen)..<closeParen]
-                                selectedTitle = String(titlePart)
-                                selectedYear = String(yearPart)
-                            } else {
-                                selectedTitle = movieTitle
-                                selectedYear = ""
-                            }
-
+                        onOpenDetails: { movie in
+                            selectedMovie = movie
                             screen = "selected"
                         },
                         notInterestedMovies: notInterestedMovies

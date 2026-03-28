@@ -104,12 +104,3 @@ struct SettingsView: View {
         }
     }
 }
-
-#Preview {
-    SettingsView(
-        onBack: { },
-        onSave: { _, _ in },
-        onEditNotInterested: { },
-        onLogout: { }
-    )
-}
