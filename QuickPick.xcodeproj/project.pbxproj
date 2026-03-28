@@ -13,8 +13,6 @@
 
 /* Begin PBXFileReference section */
 		6325C22F2F4D69DF001FFDFF /* QuickPick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickPick.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DE5CBC142F64E35A0089BBB3 /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
-		DE5CBC152F64E36D0089BBB3 /* AccountRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -41,9 +39,7 @@
 		6325C2262F4D69DF001FFDFF = {
 			isa = PBXGroup;
 			children = (
-				DE5CBC132F64E3400089BBB3 /* Model */,
 				6325C2312F4D69DF001FFDFF /* QuickPick */,
-				DEC2EB8D2F64C47E004ECBFC /* Frameworks */,
 				6325C2302F4D69DF001FFDFF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,22 +50,6 @@
 				6325C22F2F4D69DF001FFDFF /* QuickPick.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		DE5CBC132F64E3400089BBB3 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				DE5CBC152F64E36D0089BBB3 /* AccountRepository.swift */,
-				DE5CBC142F64E35A0089BBB3 /* Account.swift */,
-			);
-			path = Model;
-			sourceTree = "<group>";
-		};
-		DEC2EB8D2F64C47E004ECBFC /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

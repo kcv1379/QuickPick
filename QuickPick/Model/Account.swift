@@ -1,7 +1,3 @@
-//
-//  Account.swift
-//  QuickPick
-//
 import Foundation
 struct Account {
     let uid: String

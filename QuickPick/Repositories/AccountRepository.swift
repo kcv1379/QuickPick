@@ -1,7 +1,3 @@
-//
-//  AccountRepository.swift
-//  QuickPick
-//
 import Foundation
 import FirebaseFirestore
 

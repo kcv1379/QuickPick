@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseCore
 import FirebaseAuth
 
 @main
@@ -15,6 +16,10 @@ struct QuickPickApp: App {
         .init(title: "Jaws", year: "1975"),
         .init(title: "Her", year: "2013")
     ]
+
+    init() {
+        FirebaseApp.configure()
+    }
 
     var body: some Scene {
         WindowGroup {
