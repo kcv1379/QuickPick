@@ -2,7 +2,7 @@ import SwiftUI
 
 //mock domain object for now
 struct QPMovie: Identifiable, Hashable {
-    let id = UUID()
+    var id: String { "\(title)-\(year)" }
     let title: String
     let year: String
 }
@@ -39,6 +39,7 @@ struct MovieFeedView: View {
     //navigation to settings and datails screen once added
     let onOpenSettings: () -> Void
     let onOpenDetails: (_ movieTitle: String) -> Void
+    let notInterestedMovies: [QPMovie]
 
     private let columns = [
         GridItem(.flexible()),
@@ -46,6 +47,12 @@ struct MovieFeedView: View {
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
+    
+    private var filteredMovies: [QPMovie] {
+        movies.filter {
+            movie in !notInterestedMovies.contains(where: { $0.id == movie.id})
+        }
+    }
 
     var body: some View {
         let _ = print("Lifecycle: MovieFeedView onCreate")
@@ -65,7 +72,7 @@ struct MovieFeedView: View {
                             .padding(.top, 8)
 
                         LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(movies) { movie in
+                            ForEach(filteredMovies) { movie in
                                 Button {
                                     // update later
                                     onOpenDetails("\(movie.title) (\(movie.year))")
@@ -245,6 +252,7 @@ private struct PosterCard: View {
 #Preview {
     MovieFeedView(
         onOpenSettings: { },
-        onOpenDetails: { _ in }
+        onOpenDetails: { _ in },
+        notInterestedMovies: []
     )
 }

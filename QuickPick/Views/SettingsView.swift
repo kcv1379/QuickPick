@@ -72,10 +72,11 @@ struct SettingsView: View {
                     onEditNotInterested()
                 } label: {
                     Text("Edit Not Interested List")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 16, weight: .medium))
                         .underline()
                         .foregroundStyle(.white)
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -102,4 +103,13 @@ struct SettingsView: View {
             onSave(region, newValue)
         }
     }
+}
+
+#Preview {
+    SettingsView(
+        onBack: { },
+        onSave: { _, _ in },
+        onEditNotInterested: { },
+        onLogout: { }
+    )
 }
