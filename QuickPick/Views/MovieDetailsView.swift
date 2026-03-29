@@ -15,128 +15,111 @@ struct MovieDetailsView: View {
             QPTheme.bg.ignoresSafeArea()
 
             ScrollView {
-                VStack {
-                    Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack {
+                        Button("Back") {
+                            onBack()
+                        }
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
 
-                    VStack(alignment: .leading, spacing: 26) {
+                        Spacer()
+                    }
+                    .padding(.top, 4)
+
+                    if isLoading {
                         HStack {
-                            Button("Back") {
-                                onBack()
-                            }
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(.white)
-
+                            Spacer()
+                            ProgressView()
+                                .tint(.white)
                             Spacer()
                         }
-                        .padding(.top, -10)
+                        .frame(height: 240)
 
-                        HStack {
-                            Spacer()
-
-                            Text("Movie Details")
-                                .font(.system(size: 36, weight: .bold))
+                    } else if !errorMessage.isEmpty {
+                        VStack(spacing: 12) {
+                            Text("Failed to load details")
+                                .font(.system(size: 20, weight: .semibold))
                                 .foregroundStyle(.white)
 
+                            Text(errorMessage)
+                                .font(.system(size: 14))
+                                .foregroundStyle(QPTheme.subtle)
+                                .multilineTextAlignment(.center)
+
+                            Button("Try Again") {
+                                Task {
+                                    await loadDetails()
+                                }
+                            }
+                            .buttonStyle(QPPrimaryButtonStyle())
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 240)
+
+                    } else if let details {
+                        HStack {
+                            Spacer()
+
+                            if let posterPath = details.poster_path,
+                               let url = URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)") {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .fill(QPTheme.card)
+                                            .frame(width: 170, height: 245)
+                                            .overlay {
+                                                ProgressView()
+                                                    .tint(.white)
+                                            }
+
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 170, height: 245)
+                                            .clipShape(RoundedRectangle(cornerRadius: 18))
+
+                                    case .failure(_):
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .fill(QPTheme.card)
+                                            .frame(width: 170, height: 245)
+                                            .overlay {
+                                                Text("Poster")
+                                                    .font(.system(size: 22, weight: .medium))
+                                                    .foregroundStyle(QPTheme.subtle)
+                                            }
+
+                                    @unknown default:
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .fill(QPTheme.card)
+                                            .frame(width: 170, height: 245)
+                                    }
+                                }
+                            } else {
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(QPTheme.card)
+                                    .frame(width: 170, height: 245)
+                                    .overlay {
+                                        Text("Poster")
+                                            .font(.system(size: 22, weight: .medium))
+                                            .foregroundStyle(QPTheme.subtle)
+                                    }
+                            }
+
                             Spacer()
                         }
 
-                        if isLoading {
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                    .tint(.white)
-                                Spacer()
-                            }
-                            .frame(height: 260)
-
-                        } else if !errorMessage.isEmpty {
-                            VStack(spacing: 12) {
-                                Text("Failed to load details")
-                                    .font(.system(size: 22, weight: .semibold))
-                                    .foregroundStyle(.white)
-
-                                Text(errorMessage)
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(QPTheme.subtle)
-                                    .multilineTextAlignment(.center)
-
-                                Button("Try Again") {
-                                    Task {
-                                        await loadDetails()
-                                    }
-                                }
-                                .buttonStyle(QPPrimaryButtonStyle())
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 260)
-
-                        } else if let details {
-                            HStack {
-                                Spacer()
-
-                                if let posterPath = details.poster_path,
-                                   let url = URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)") {
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            RoundedRectangle(cornerRadius: 18)
-                                                .fill(QPTheme.card)
-                                                .frame(width: 180, height: 260)
-                                                .overlay {
-                                                    ProgressView()
-                                                        .tint(.white)
-                                                }
-
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 180, height: 260)
-                                                .clipShape(RoundedRectangle(cornerRadius: 18))
-
-                                        case .failure(_):
-                                            RoundedRectangle(cornerRadius: 18)
-                                                .fill(QPTheme.card)
-                                                .frame(width: 180, height: 260)
-                                                .overlay {
-                                                    Text("Poster")
-                                                        .font(.system(size: 24, weight: .medium))
-                                                        .foregroundStyle(QPTheme.subtle)
-                                                }
-
-                                        @unknown default:
-                                            RoundedRectangle(cornerRadius: 18)
-                                                .fill(QPTheme.card)
-                                                .frame(width: 180, height: 260)
-                                        }
-                                    }
-                                } else {
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .fill(QPTheme.card)
-                                        .frame(width: 180, height: 260)
-                                        .overlay {
-                                            Text("Poster")
-                                                .font(.system(size: 24, weight: .medium))
-                                                .foregroundStyle(QPTheme.subtle)
-                                        }
-                                }
-
-                                Spacer()
-                            }
-
-                            detailRow(label: "Title", value: details.title)
-                            detailRow(label: "Rating", value: details.ratingText)
-                            detailRow(label: "Runtime", value: details.runtimeText)
-                            detailRow(label: "Genres", value: details.genresText)
-                            detailRow(label: "Synopsis", value: details.synopsisText)
-                        }
-
-                        Spacer(minLength: 0)
+                        detailRow(label: "Title", value: details.title)
+                        detailRow(label: "Rating", value: details.ratingText)
+                        detailRow(label: "Runtime", value: details.runtimeText)
+                        detailRow(label: "Genres", value: details.genresText)
+                        detailRow(label: "Synopsis", value: details.synopsisText, isSynopsis: true)
                     }
-
-                    Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 24)
+                .padding(.horizontal, 18)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
             }
         }
         .preferredColorScheme(.dark)
@@ -166,16 +149,17 @@ struct MovieDetailsView: View {
         isLoading = false
     }
 
-    private func detailRow(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private func detailRow(label: String, value: String, isSynopsis: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.system(size: 17, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(QPTheme.subtle)
 
             Text(value)
-                .font(.system(size: 19, weight: .medium))
+                .font(.system(size: isSynopsis ? 16 : 18, weight: .medium))
                 .foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

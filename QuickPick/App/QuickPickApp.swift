@@ -67,9 +67,9 @@ struct QuickPickApp: App {
                             let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
                             let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                            if trimmedUsername.isEmpty || trimmedPassword.isEmpty {
+                            if trimmedUsername.isEmpty || trimmedPassword.isEmpty || region.isEmpty {
                                 alertTitle = "Missing Info"
-                                alertMessage = "Please enter both username and password."
+                                alertMessage = "Please enter username, password, and region."
                                 showAlert = true
                                 return
                             }

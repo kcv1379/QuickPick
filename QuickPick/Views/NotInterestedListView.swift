@@ -26,7 +26,11 @@ struct NotInterestedListView: View {
                         Spacer()
 
                         Text("No not interested movies")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+
+                        Text("Movies you mark as not interested will show up here.")
+                            .font(.system(size: 14))
                             .foregroundStyle(QPTheme.subtle)
                             .multilineTextAlignment(.center)
                             .padding(.top, 4)
@@ -36,7 +40,7 @@ struct NotInterestedListView: View {
                     }
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: columns, spacing: 12) {
+                        LazyVGrid(columns: columns, spacing: 8) {
                             ForEach(notInterestedMovies) { movie in
                                 ZStack(alignment: .topTrailing) {
                                     NotInterestedPosterCard(movie: movie)
@@ -55,9 +59,9 @@ struct NotInterestedListView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        .padding(.bottom, 24)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 2)
+                        .padding(.bottom, 20)
                     }
                 }
             }
@@ -75,28 +79,16 @@ struct NotInterestedListView: View {
 
     private var header: some View {
         HStack {
-            Button {
+            Button("Back") {
                 onBack()
-            } label: {
-                Text("Back")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
             }
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(.white)
 
             Spacer()
-
-            Text("Not Interested")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Text("Back")
-                .font(.system(size: 16, weight: .semibold))
-                .opacity(0)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
     }
 
     private func removeMovie(_ movie: QPMovie) {
@@ -112,7 +104,7 @@ private struct NotInterestedPosterCard: View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .fill(QPTheme.card)
-                .frame(height: 170)
+                .aspectRatio(2/3, contentMode: .fit)
 
             if let posterURL = movie.posterURL {
                 AsyncImage(url: posterURL) { phase in
@@ -121,7 +113,7 @@ private struct NotInterestedPosterCard: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(QPTheme.card)
-                                .frame(height: 170)
+                                .aspectRatio(2/3, contentMode: .fit)
 
                             ProgressView()
                                 .tint(.white)
@@ -131,8 +123,7 @@ private struct NotInterestedPosterCard: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 170)
-                            .frame(maxWidth: .infinity)
+                            .aspectRatio(2/3, contentMode: .fit)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
 
                     case .failure(_):
@@ -152,7 +143,7 @@ private struct NotInterestedPosterCard: View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 12)
                 .fill(QPTheme.card)
-                .frame(height: 170)
+                .aspectRatio(2/3, contentMode: .fit)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(movie.title)

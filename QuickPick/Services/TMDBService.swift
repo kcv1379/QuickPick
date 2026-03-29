@@ -45,6 +45,15 @@ struct TMDBMovieDetails: Decodable {
     }
 }
 
+struct TMDBRegion: Decodable, Hashable {
+    let iso_3166_1: String
+    let english_name: String
+}
+
+struct TMDBRegionResponse: Decodable {
+    let results: [TMDBRegion]
+}
+
 final class TMDBService {
     static let shared = TMDBService()
 
@@ -113,5 +122,26 @@ final class TMDBService {
         }
 
         return try JSONDecoder().decode(TMDBMovieDetails.self, from: data)
+    }
+
+    func fetchRegions() async throws -> [TMDBRegion] {
+        guard let url = URL(string: "https://api.themoviedb.org/3/watch/providers/regions") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        request.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              200...299 ~= httpResponse.statusCode else {
+            throw URLError(.badServerResponse)
+        }
+
+        let decoded = try JSONDecoder().decode(TMDBRegionResponse.self, from: data)
+        return decoded.results.sorted { $0.iso_3166_1 < $1.iso_3166_1 }
     }
 }

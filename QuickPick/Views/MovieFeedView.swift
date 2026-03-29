@@ -50,14 +50,7 @@ struct MovieFeedView: View {
                 header
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("\(discoveryMode) • \(region)")
-                            .font(.system(size: 17, weight: .medium))
-                            .opacity(0.9)
-                            .foregroundStyle(QPTheme.subtle)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
-
+                    VStack(alignment: .leading, spacing: 6) {
                         if isLoading {
                             ProgressView()
                                 .tint(.white)
@@ -94,8 +87,8 @@ struct MovieFeedView: View {
                                 .padding(.top, 40)
 
                         } else {
-                            LazyVGrid(columns: columns, spacing: 10) {
-                                ForEach(Array(movies.prefix(16))) { movie in
+                            LazyVGrid(columns: columns, spacing: 8) {
+                                ForEach(Array(movies.prefix(20))) { movie in
                                     Button {
                                         onOpenDetails(movie)
                                     } label: {
@@ -108,8 +101,8 @@ struct MovieFeedView: View {
                                 }
                             }
                             .padding(.horizontal, 14)
-                            .padding(.top, 6)
-                            .padding(.bottom, 24)
+                            .padding(.top, 2)
+                            .padding(.bottom, 20)
                         }
                     }
                 }
@@ -136,6 +129,12 @@ struct MovieFeedView: View {
                 await loadMovies()
             }
         }
+        .onChange(of: region) { _, _ in
+            page = 1
+            Task {
+                await loadMovies()
+            }
+        }
         .onAppear {
             print("Lifecycle: MovieFeedView onStart")
             print("Lifecycle: MovieFeedView onResume")
@@ -147,23 +146,27 @@ struct MovieFeedView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Text("QuickPick")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(.white)
 
             Spacer()
 
+            Text("\(discoveryMode) • \(region)")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(QPTheme.subtle)
+
             Button {
                 showFilterSheet = true
             } label: {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
             }
-            .foregroundStyle(.white)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
     }
 
     private var bottomBar: some View {
@@ -207,7 +210,7 @@ struct MovieFeedView: View {
             .foregroundStyle(.white.opacity(0.85))
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
         .background(QPTheme.bg.opacity(0.98))
     }
 

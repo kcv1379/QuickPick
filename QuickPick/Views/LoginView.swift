@@ -29,14 +29,12 @@ struct LoginView: View {
                 QPField(title: "Password", text: $password, isSecure: true)
 
                 Button("Login") {
-                    //hussan: navigate to MovieFeedView
                     onLogin(username, password)
                 }
                 .buttonStyle(QPPrimaryButtonStyle())
                 .padding(.top, 4)
 
                 Button("Create Account") {
-                    //hussan: navigate to CreateAccountView
                     onCreateAccount()
                 }
                 .buttonStyle(QPSecondaryButtonStyle())

@@ -4,13 +4,17 @@ struct SettingsView: View {
     @State private var region: String
     @State private var shakeEnabled: Bool
 
+    @State private var regions: [TMDBRegion] = []
+    @State private var isLoadingRegions = false
+    @State private var regionLoadError = ""
+
     let onBack: () -> Void
     let onSave: (_ region: String, _ shakeEnabled: Bool) -> Void
     let onEditNotInterested: () -> Void
     let onLogout: () -> Void
 
     init(
-        region: String = "US",
+        region: String = "",
         shakeEnabled: Bool = true,
         onBack: @escaping () -> Void,
         onSave: @escaping (_ region: String, _ shakeEnabled: Bool) -> Void,
@@ -47,19 +51,61 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(QPTheme.subtle)
 
-                    Picker("Region", selection: $region) {
-                        Text("US").tag("US")
-                        Text("UK").tag("UK")
-                        Text("CA").tag("CA")
-                        Text("JP").tag("JP")
-                        Text("KR").tag("KR")
+                    if isLoadingRegions {
+                        HStack {
+                            ProgressView()
+                                .tint(.white)
+
+                            Text("Loading regions...")
+                                .foregroundStyle(QPTheme.subtle)
+
+                            Spacer()
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .background(QPTheme.field)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                    } else if !regionLoadError.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(regionLoadError)
+                                .font(.system(size: 14))
+                                .foregroundStyle(.red)
+
+                            Button("Try Again") {
+                                Task {
+                                    await loadRegions()
+                                }
+                            }
+                            .foregroundStyle(.white)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .background(QPTheme.field)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                    } else {
+                        HStack {
+                            Picker("Region", selection: $region) {
+                                Text("Select region").tag("")
+                                ForEach(regions, id: \.iso_3166_1) { r in
+                                    Text("\(r.iso_3166_1) - \(r.english_name)")
+                                        .tag(r.iso_3166_1)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(.white)
+
+                            Spacer()
+
+                            Text(region.isEmpty ? "None" : region)
+                                .foregroundStyle(.white.opacity(0.65))
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .background(QPTheme.field)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .pickerStyle(.menu)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 6)
-                    .background(QPTheme.field)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .tint(.white)
                 }
 
                 Toggle(isOn: $shakeEnabled) {
@@ -88,6 +134,9 @@ struct SettingsView: View {
             .padding(20)
         }
         .preferredColorScheme(.dark)
+        .task {
+            await loadRegions()
+        }
         .onAppear {
             print("Lifecycle: SettingsView onStart")
             print("Lifecycle: SettingsView onResume")
@@ -97,10 +146,25 @@ struct SettingsView: View {
             print("Lifecycle: SettingsView onStop")
         }
         .onChange(of: region) { _, newValue in
-            onSave(newValue, shakeEnabled)
+            if !newValue.isEmpty {
+                onSave(newValue, shakeEnabled)
+            }
         }
         .onChange(of: shakeEnabled) { _, newValue in
             onSave(region, newValue)
         }
+    }
+
+    private func loadRegions() async {
+        isLoadingRegions = true
+        regionLoadError = ""
+
+        do {
+            regions = try await TMDBService.shared.fetchRegions()
+        } catch {
+            regionLoadError = "Failed to load regions."
+        }
+
+        isLoadingRegions = false
     }
 }
