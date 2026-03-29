@@ -5,6 +5,8 @@ struct NotInterestedListView: View {
 
     let onBack: () -> Void
 
+    @State private var showClearAlert = false
+
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
@@ -61,12 +63,33 @@ struct NotInterestedListView: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.top, 2)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 16)
                     }
+
+                    Button {
+                        showClearAlert = true
+                    } label: {
+                        Text("Clear All")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(QPTheme.field)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
                 }
             }
         }
         .preferredColorScheme(.dark)
+        .alert("Clear all movies?", isPresented: $showClearAlert) {
+            Button("Clear", role: .destructive) {
+                notInterestedMovies.removeAll()
+            }
+            Button("Cancel", role: .cancel) { }
+        }
         .onAppear {
             print("Lifecycle: NotInterestedListView onStart")
             print("Lifecycle: NotInterestedListView onResume")
@@ -93,7 +116,6 @@ struct NotInterestedListView: View {
 
     private func removeMovie(_ movie: QPMovie) {
         notInterestedMovies.removeAll { $0.id == movie.id }
-        print("Removed not interested movie: \(movie.title)")
     }
 }
 
