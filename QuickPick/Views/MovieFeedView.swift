@@ -28,6 +28,12 @@ struct MovieFeedView: View {
     @State private var errorMessage = ""
     @State private var totalPages = 1
 
+    @State private var genres: [TMDBGenre] = []
+    @State private var selectedGenreIds: Set<Int> = []
+
+    @State private var providers: [TMDBProvider] = []
+    @State private var selectedProviderIds: Set<Int> = []
+
     let region: String
     let onOpenSettings: () -> Void
     let onOpenDetails: (_ movie: QPMovie) -> Void
@@ -116,6 +122,7 @@ struct MovieFeedView: View {
                 .presentationDetents([.medium])
         }
         .task {
+            await loadFilterOptions()
             await loadMovies()
         }
         .onChange(of: page) { _, _ in
@@ -130,8 +137,10 @@ struct MovieFeedView: View {
             }
         }
         .onChange(of: region) { _, _ in
-            page = 1
+            selectedProviderIds.removeAll()
             Task {
+                await loadProviders()
+                page = 1
                 await loadMovies()
             }
         }
@@ -218,7 +227,7 @@ struct MovieFeedView: View {
         ZStack {
             QPTheme.bg.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("Filters")
                     .font(.system(size: 26, weight: .bold))
                     .foregroundStyle(.white)
@@ -250,22 +259,114 @@ struct MovieFeedView: View {
                     .pickerStyle(.segmented)
                 }
 
-                Button("Apply") {
-                    print("Apply filters: timeLimit=\(timeLimit), mode=\(discoveryMode)")
-                    page = 1
-                    showFilterSheet = false
-                    Task {
-                        await loadMovies()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Genres")
+                        .font(.caption)
+                        .foregroundStyle(QPTheme.subtle)
+
+                    Menu {
+                        ForEach(genres, id: \.id) { genre in
+                            Button {
+                                toggleGenre(genre.id)
+                            } label: {
+                                HStack {
+                                    Text(genre.name)
+                                    Spacer()
+                                    if selectedGenreIds.contains(genre.id) {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(selectedGenreLabel)
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(QPTheme.subtle)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .background(QPTheme.field)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                 }
-                .buttonStyle(QPPrimaryButtonStyle())
-                .padding(.top, 6)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Streaming providers")
+                        .font(.caption)
+                        .foregroundStyle(QPTheme.subtle)
+
+                    Menu {
+                        ForEach(providers, id: \.provider_id) { provider in
+                            Button {
+                                toggleProvider(provider.provider_id)
+                            } label: {
+                                HStack {
+                                    Text(provider.provider_name)
+                                    Spacer()
+                                    if selectedProviderIds.contains(provider.provider_id) {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(selectedProviderLabel)
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(QPTheme.subtle)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .background(QPTheme.field)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    Button("Clear Filters") {
+                        timeLimit = ""
+                        discoveryMode = "Popular"
+                        selectedGenreIds.removeAll()
+                        selectedProviderIds.removeAll()
+                        page = 1
+                    }
+                    .buttonStyle(QPPrimaryButtonStyle())
+
+                    Button("Apply") {
+                        page = 1
+                        showFilterSheet = false
+                        Task {
+                            await loadMovies()
+                        }
+                    }
+                    .buttonStyle(QPPrimaryButtonStyle())
+                }
+                .padding(.top, 4)
 
                 Spacer()
             }
             .padding(20)
         }
         .preferredColorScheme(.dark)
+    }
+
+    private var selectedGenreLabel: String {
+        if selectedGenreIds.isEmpty {
+            return "Any"
+        }
+        return "\(selectedGenreIds.count) selected"
+    }
+
+    private var selectedProviderLabel: String {
+        if selectedProviderIds.isEmpty {
+            return "Any"
+        }
+        return "\(selectedProviderIds.count) selected"
     }
 
     private func loadMovies() async {
@@ -277,7 +378,9 @@ struct MovieFeedView: View {
                 mode: discoveryMode,
                 page: page,
                 region: region,
-                timeLimit: timeLimit
+                timeLimit: timeLimit,
+                genreIds: Array(selectedGenreIds),
+                providerIds: Array(selectedProviderIds)
             )
             movies = response.results
             totalPages = response.total_pages
@@ -286,6 +389,43 @@ struct MovieFeedView: View {
         }
 
         isLoading = false
+    }
+
+    private func loadFilterOptions() async {
+        do {
+            genres = try await TMDBService.shared.fetchGenres()
+            providers = try await TMDBService.shared.fetchMovieProviders(region: region)
+            print("Loaded genres: \(genres.count)")
+            print("Loaded providers: \(providers.count)")
+        } catch {
+            print("Filter load error: \(error.localizedDescription)")
+            genres = []
+            providers = []
+        }
+    }
+
+    private func loadProviders() async {
+        do {
+            providers = try await TMDBService.shared.fetchMovieProviders(region: region)
+        } catch {
+            providers = []
+        }
+    }
+
+    private func toggleGenre(_ id: Int) {
+        if selectedGenreIds.contains(id) {
+            selectedGenreIds.remove(id)
+        } else {
+            selectedGenreIds.insert(id)
+        }
+    }
+
+    private func toggleProvider(_ id: Int) {
+        if selectedProviderIds.contains(id) {
+            selectedProviderIds.remove(id)
+        } else {
+            selectedProviderIds.insert(id)
+        }
     }
 }
 
