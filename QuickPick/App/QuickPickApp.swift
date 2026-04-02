@@ -1,7 +1,9 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
-
+extension Notification.Name {
+    static let shake = Notification.Name("shake")
+}
 @main
 struct QuickPickApp: App {
     @Environment(\.scenePhase) private var scenePhase
@@ -35,6 +37,14 @@ struct QuickPickApp: App {
         if let data = UserDefaults.standard.data(forKey: "notInterestedMovieIDs"),
            let ids = try? JSONDecoder().decode([Int].self, from: data) {
             notInterestedMovies = notInterestedMovies.filter { ids.contains($0.id) }
+        }
+    }
+    private func handleShake(){
+        guard shakeEnabled else { 
+                                return
+        }
+        if screen == "feed" {
+            print("QuickPick enabled")
         }
     }
     var body: some Scene {
@@ -198,6 +208,12 @@ struct QuickPickApp: App {
             }
             .onAppear{
                 loadNotInterested()
+                NotificationCenter.default.addObserver(forName: .shake, object: nil, queue: .main){ _ in
+                                                                                                   handleShake()
+                }
+            }
+            .onDisappear{
+                NotificationCenter.default.removeObserver(self, name: .shake, object: nil)
             }
         }
         .onChange(of: scenePhase) { _, newValue in
