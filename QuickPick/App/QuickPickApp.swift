@@ -24,7 +24,19 @@ struct QuickPickApp: App {
     init() {
         FirebaseApp.configure()
     }
+    private func saveNotInterested() {
+        let ids = notInterestedMovies.map { $0.id }
+        if let data = try? JSONEncoder().encode(ids) {
+            UserDefaults.standard.set(data, forKey: "notInterestedMovieIDs")
+        }
+    }
 
+    private func loadNotInterested() {
+        if let data = UserDefaults.standard.data(forKey: "notInterestedMovieIDs"),
+           let ids = try? JSONDecoder().decode([Int].self, from: data) {
+            notInterestedMovies = notInterestedMovies.filter { ids.contains($0.id) }
+        }
+    }
     var body: some Scene {
         WindowGroup {
             Group {
@@ -148,7 +160,7 @@ struct QuickPickApp: App {
                             if !notInterestedMovies.contains(movie) {
                                 notInterestedMovies.append(movie)
                             }
-
+                            saveNotInterested()
                             print("Marked not interested: \(movie.title)")
                             screen = "feed"
                         }
@@ -183,6 +195,9 @@ struct QuickPickApp: App {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(alertMessage)
+            }
+            .onAppear{
+                loadNotInterested()
             }
         }
         .onChange(of: scenePhase) { _, newValue in
