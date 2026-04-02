@@ -102,7 +102,9 @@ final class TMDBService {
             URLQueryItem(name: "page", value: "\(page)"),
             URLQueryItem(name: "region", value: region),
             URLQueryItem(name: "watch_region", value: region),
-            URLQueryItem(name: "include_adult", value: "false")
+            URLQueryItem(name: "include_adult", value: "false"),
+            URLQueryItem(name: "with_runtime.gte", value: "1"),         
+            URLQueryItem(name: "primary_release_date.lte", value: DateFormatter().string(from: Date()))
         ]
 
         if mode == "Top Rated" {
