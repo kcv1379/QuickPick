@@ -478,6 +478,8 @@ private struct PosterCard: View {
                     .aspectRatio(2/3, contentMode: .fit)
             }
         }
+        .accessibilityLabel("\(movie.title) (\(movie.year))")
+            .accessibilityHint("Tap to view movie details")
     }
 
     private var fallbackCard: some View {
